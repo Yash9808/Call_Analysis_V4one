@@ -15,6 +15,10 @@ import soundfile as sf  # To read audio files without audioread
 # Load pre-trained sentiment analysis model
 sentiment_analyzer = pipeline("sentiment-analysis")
 
+# Load and display Chartwell logo
+chartwell_logo_path = "/mnt/data/image.png"
+st.image(chartwell_logo_path, width=150)  # Adjust width as needed
+
 # Streamlit UI
 st.title("\U0001F3A4 Single Audio Sentiment Analysis")
 st.write("Upload an MP3 file to analyze its sentiment.")
