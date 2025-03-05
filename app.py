@@ -22,7 +22,7 @@ sentiment_analyzer = pipeline("sentiment-analysis")
 chartwell_logo_path = "https://raw.githubusercontent.com/Yash9808/Call_Analysis_V4one/main/image.jpeg"
 response = requests.get(chartwell_logo_path)
 img = Image.open(BytesIO(response.content))
-col1, col2, col3 = st.columns([1, 8, 1])  # Create three columns (the middle one is wider)
+col1, col2, col3 = st.columns([1, 10, 1])  # Create three columns (the middle one is wider)
 with col2:  # The middle column
     st.image(img, width=150)
 
