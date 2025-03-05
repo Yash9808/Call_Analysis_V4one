@@ -1,4 +1,7 @@
 import os
+from PIL import Image
+import requests
+from io import BytesIO
 os.system('apt-get update')
 os.system('apt-get install -y ffmpeg')
 os.system('apt-get install -y ffprobe')
@@ -17,7 +20,9 @@ sentiment_analyzer = pipeline("sentiment-analysis")
 
 # Load and display Chartwell logo
 chartwell_logo_path = "https://github.com/Yash9808/Call_Analysis_V4one/blob/main/image.jpeg"
-st.image(chartwell_logo_path, width=150)  # Adjust width as needed
+response = requests.get(chartwell_logo_path)
+img = Image.open(BytesIO(response.content))
+st.image(img, width=150)
 
 # Streamlit UI
 st.title("\U0001F3A4 Single Audio Sentiment Analysis")
