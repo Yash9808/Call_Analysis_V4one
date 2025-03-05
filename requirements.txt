@@ -1,0 +1,8 @@
+streamlit
+librosa
+transformers
+torch
+pydub
+numpy
+matplotlib
+seaborn
