@@ -7,7 +7,8 @@ import seaborn as sns
 from scipy.fftpack import fft
 from scipy.stats import norm
 from transformers import pipeline
-import audioread  # For handling audio files without FFmpeg
+import soundfile as sf  # To read audio files without audioread
+from pydub import AudioSegment  # To handle MP3 conversion
 
 # Load pre-trained sentiment analysis model
 sentiment_analyzer = pipeline("sentiment-analysis")
@@ -20,31 +21,32 @@ st.write("Upload an MP3 file to analyze its sentiment.")
 uploaded_file = st.file_uploader("Choose an MP3 file", type=["mp3"])
 
 def analyze_audio(file_path):
-    # Use audioread to load the MP3 file
-    with audioread.audio_open(file_path) as f:
-        # Extract sample rate and number of channels
-        sr = f.samplerate
-        channels = f.channels
-        duration = f.duration
+    # Convert MP3 to WAV using Pydub
+    audio = AudioSegment.from_mp3(file_path)
+    wav_path = file_path.replace(".mp3", ".wav")
+    audio.export(wav_path, format="wav")
 
-        # Read audio data into numpy array
-        samples = np.zeros(int(duration * sr * channels))
-        i = 0
-        for buf in f:
-            samples[i:i+len(buf)] = np.frombuffer(buf, dtype=np.int16)
-            i += len(buf)
+    # Load audio using soundfile to avoid audioread issues
+    y, sr = sf.read(wav_path)
 
-    # Compute MFCCs using librosa
-    mfccs = librosa.feature.mfcc(y=samples, sr=sr, n_mfcc=13)
+    # Convert stereo to mono if needed
+    if len(y.shape) > 1:
+        y = np.mean(y, axis=1)
+
+    # Resample for consistency
+    y, sr = librosa.resample(y, orig_sr=sr, target_sr=22050), 22050
+
+    # Compute MFCCs
+    mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
     mfccs_mean = np.mean(mfccs, axis=1)
 
     # Compute FFT
-    fft_vals = np.abs(fft(samples))[:len(samples)//2]
+    fft_vals = np.abs(fft(y))[:len(y)//2]
     freqs = np.linspace(0, sr/2, len(fft_vals))
     peak_freq = freqs[np.argmax(fft_vals)]
 
     # Estimate pitch distribution
-    pitches, magnitudes = librosa.piptrack(y=samples, sr=sr)
+    pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
     pitch_values = pitches[magnitudes > np.median(magnitudes)]
     pitch_mean, pitch_std = np.mean(pitch_values), np.std(pitch_values)
 
@@ -55,10 +57,13 @@ def analyze_audio(file_path):
     # Sentiment analysis (dummy placeholder for sentiment)
     sentiment_result = sentiment_analyzer("This is a placeholder for sentiment analysis based on audio!")
 
+    # Cleanup temporary WAV file
+    os.remove(wav_path)
+
     return sentiment_result[0], mfccs_mean, freqs, fft_vals, pitch_mean, pitch_std, peak_freq, peak_color
 
 if uploaded_file:
-    # Save the uploaded file temporarily
+    # Save uploaded file temporarily
     file_path = f"temp/{uploaded_file.name}"
     os.makedirs("temp", exist_ok=True)
     
