@@ -1,6 +1,7 @@
 import os
 os.system('apt-get update')
 os.system('apt-get install -y ffmpeg')
+os.system('apt-get install -y ffprobe')
 
 import streamlit as st
 import librosa
