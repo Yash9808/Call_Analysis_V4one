@@ -16,7 +16,7 @@ import soundfile as sf  # To read audio files without audioread
 sentiment_analyzer = pipeline("sentiment-analysis")
 
 # Load and display Chartwell logo
-chartwell_logo_path = "/mnt/data/image.png"
+chartwell_logo_path = "/mount/src/call_analysis_v4one/assets/image.png"
 st.image(chartwell_logo_path, width=150)  # Adjust width as needed
 
 # Streamlit UI
