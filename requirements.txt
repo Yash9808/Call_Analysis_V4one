@@ -1,7 +1,7 @@
 streamlit
 librosa
 transformers
-torch
+torch==1.12.0
 pydub
 numpy
 matplotlib
