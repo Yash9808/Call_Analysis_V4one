@@ -3,7 +3,7 @@ librosa
 transformers
 torch==2.2.0
 pydub
-numpy
+numpy<2
 matplotlib
 seaborn
 ffmpeg
