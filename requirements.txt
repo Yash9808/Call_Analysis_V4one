@@ -3,6 +3,7 @@ librosa
 transformers
 torch==2.2.0
 pydub
+audioread
 numpy<2
 matplotlib
 seaborn
