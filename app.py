@@ -138,3 +138,21 @@ if uploaded_file:
     
     # Clean up temporary files
     os.remove(file_path)
+    ######################################################################
+    st.markdown("""
+    <style>
+        .bottom-right {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #555;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px;
+            border-radius: 5px;
+        }
+    </style>
+    <div class="bottom-right">
+        Developed by Yash Sharma
+    </div>
+""", unsafe_allow_html=True)
