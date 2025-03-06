@@ -116,6 +116,15 @@ if uploaded_file:
     
     st.pyplot(fig)
     ################################################################################################################
+    # Pitch explanation
+    st.markdown("### What is Pitch Distribution and Why is it Important?")
+    st.write("Pitch distribution helps identify the general pitch range of the voice, which is crucial in customer service calls to analyze tone and engagement.")
+    
+    # Color coding for pitch evaluation
+    pitch_quality = 'Good' if 100 < pitch_mean < 300 else 'Bad'
+    pitch_color = 'green' if pitch_quality == 'Good' else 'red'
+    st.markdown(f"**Pitch Quality:** <span style='color:{pitch_color}'>{pitch_mean:.2f} Hz ({pitch_quality})</span>", unsafe_allow_html=True)
+   
     # Pitch Bell Curve Plot with Ideal Range Indicator
     st.subheader("🎵 Pitch Distribution")
 
