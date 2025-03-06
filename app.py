@@ -2,9 +2,6 @@ import os
 from PIL import Image
 import requests
 from io import BytesIO
-os.system('apt-get update')
-os.system('apt-get install -y ffmpeg')
-os.system('apt-get install -y ffprobe')
 import streamlit as st
 import librosa
 import numpy as np
@@ -15,39 +12,43 @@ from scipy.stats import norm
 from transformers import pipeline
 import soundfile as sf  # To read audio files without audioread
 
-# Load pre-trained sentiment analysis model
-sentiment_analyzer = pipeline("sentiment-analysis")
+# Cache the Sentiment Model
+@st.cache_resource
+def load_sentiment_model():
+    return pipeline("sentiment-analysis")
 
-# Load and display Chartwell logo
+sentiment_analyzer = load_sentiment_model()
+
+# Cache the Chartwell Logo Download
+@st.cache_data
+def load_chartwell_logo(url):
+    response = requests.get(url)
+    return Image.open(BytesIO(response.content))
+
 chartwell_logo_path = "https://raw.githubusercontent.com/Yash9808/Call_Analysis_V4one/main/The Chartwell Hospital (Logo).png"
-response = requests.get(chartwell_logo_path)
-img = Image.open(BytesIO(response.content))
-col1, col2, col3 = st.columns([5, 10, 1])  # Create three columns (the middle one is wider)
-with col2:  # The middle column
+img = load_chartwell_logo(chartwell_logo_path)
+
+# Display Logo
+col1, col2, col3 = st.columns([5, 10, 1])  
+with col2:  
     st.image(img, width=150)
 
-
 # Streamlit UI
-st.title("\U0001F3A4 Single Audio-Call Sentiment Analysis")
+st.title("🎤 Single Audio-Call Sentiment Analysis")
 st.write("Upload an MP3 file to analyze its sentiment.")
 
 # Upload audio file
 uploaded_file = st.file_uploader("Choose an MP3 file", type=["mp3"])
 
+# Cache the Audio Analysis Function
+@st.cache_data
 def analyze_audio(file_path):
-    # Load MP3 directly using librosa (no need for pydub conversion)
     y, sr = librosa.load(file_path, sr=22050, mono=True)
-
-    # Compute MFCCs
     mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
     mfccs_mean = np.mean(mfccs, axis=1)
-
-    # Compute FFT
     fft_vals = np.abs(fft(y))[:len(y)//2]
     freqs = np.linspace(0, sr/2, len(fft_vals))
     peak_freq = freqs[np.argmax(fft_vals)]
-
-    # Estimate pitch distribution
     pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
     pitch_values = pitches[magnitudes > np.median(magnitudes)]
     
@@ -56,149 +57,45 @@ def analyze_audio(file_path):
     else:
         pitch_mean, pitch_std = 0, 0
 
-    # Determine if peak frequency is high or low
-    threshold = 300  # Example threshold for high pitch detection
+    threshold = 300  
     peak_color = 'red' if peak_freq > threshold else 'green'
-
-    # Sentiment analysis (dummy placeholder for sentiment)
     sentiment_result = sentiment_analyzer("This is a placeholder for sentiment analysis based on audio!")
 
     return sentiment_result[0], mfccs_mean, freqs, fft_vals, pitch_mean, pitch_std, peak_freq, peak_color
 
 if uploaded_file:
-    # Save uploaded file temporarily
     file_path = f"temp/{uploaded_file.name}"
     os.makedirs("temp", exist_ok=True)
     
     with open(file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     
-    # Analyze audio file
     sentiment, mfccs, freqs, fft_vals, pitch_mean, pitch_std, peak_freq, peak_color = analyze_audio(file_path)
-    
-    # Display Sentiment Analysis Results
-    st.subheader("\U0001F4CA Sentiment Analysis Result")
+
+    st.subheader("📊 Sentiment Analysis Result")
     st.write(f"**Sentiment:** {sentiment['label']}")
     st.write(f"**Confidence:** {sentiment['score']:.2f}")
-    
-    # Explanation blocks for MFCC
-    st.markdown("### What is MFCC and Why is it Important?")
-    st.write("MFCC (Mel-Frequency Cepstral Coefficients) helps analyze the quality and tone of speech. It is widely used in speech recognition and emotion detection.")
-    
-    # Color coding for MFCC evaluation
-    mfcc_quality = 'Good' if np.mean(mfccs) > -100 else 'Bad'
-    mfcc_color = 'green' if mfcc_quality == 'Good' else 'red'
-    st.markdown(f"**MFCC Quality:** <span style='color:{mfcc_color}'>{mfcc_quality}</span>", unsafe_allow_html=True)
-    
-    # MFCC plot
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    axes[0].bar(range(len(mfccs)), mfccs)
-    axes[0].set_xlabel("MFCC Coefficients")
-    axes[0].set_ylabel("Mean Value")
-    axes[0].set_title("MFCC Feature Extraction")
 
-    # FFT explanation
-    st.markdown("### What is FFT and Why is it Important?")
-    st.write("FFT (Fast Fourier Transform) helps analyze the frequency content of the voice, which can indicate pitch and clarity.")
-    
-    # Color coding for FFT peak frequency evaluation
-    fft_quality = 'High' if peak_freq > 300 else 'Normal'
-    fft_color = 'red' if fft_quality == 'High' else 'green'
-    st.markdown(f"**FFT Peak Frequency:** <span style='color:{fft_color}'>{peak_freq:.2f} Hz ({fft_quality})</span>", unsafe_allow_html=True)
-
-    # FFT plot
-    axes[1].plot(freqs, fft_vals, label='FFT Spectrum')
-    axes[1].axvline(peak_freq, color=peak_color, linestyle='--', label=f'Peak: {peak_freq:.2f} Hz')
-    axes[1].set_xlabel("Frequency (Hz)")
-    axes[1].set_ylabel("Amplitude")
-    axes[1].set_title("FFT of Voice Data")
-    axes[1].legend()
-    
-    st.pyplot(fig)
-    ################################################################################################################
-    # Pitch explanation
-    st.markdown("### What is Pitch Distribution and Why is it Important?")
-    st.write("Pitch distribution helps identify the general pitch range of the voice, which is crucial in customer service calls to analyze tone and engagement.")
-    
-    # Color coding for pitch evaluation
-    pitch_quality = 'Good' if 100 < pitch_mean < 300 else 'Bad'
-    pitch_color = 'green' if pitch_quality == 'Good' else 'red'
-    st.markdown(f"**Pitch Quality:** <span style='color:{pitch_color}'>{pitch_mean:.2f} Hz ({pitch_quality})</span>", unsafe_allow_html=True)
-   
-    # Pitch Bell Curve Plot with Ideal Range Indicator
+    # Pitch Distribution Plot
     st.subheader("🎵 Pitch Distribution")
-
     fig, ax = plt.subplots()
-
-    # Ensure valid standard deviation to prevent errors
+    
     if pitch_std > 0:
         x_vals = np.linspace(pitch_mean - 3*pitch_std, pitch_mean + 3*pitch_std, 100)
         y_vals = norm.pdf(x_vals, pitch_mean, pitch_std)
     else:
-        x_vals = np.array([pitch_mean])  # Avoid error if pitch_std = 0
-        y_vals = np.array([1.0])         # Set an arbitrary density value
+        x_vals = np.array([pitch_mean])
+        y_vals = np.array([1.0])
 
-    # Plot the pitch distribution curve
     sns.lineplot(x=x_vals, y=y_vals, ax=ax, color="blue", label="Pitch Distribution")
-
-    # Highlight the ideal pitch range (e.g., 100 Hz - 600 Hz)
-    ideal_low, ideal_high = 100, 600  # Adjust these values as needed
-    ax.axvspan(ideal_low, ideal_high, color='green', alpha=0.2, label="Ideal Range (100-300 Hz)")
-
-    # Mark the mean pitch
+    ax.axvspan(100, 600, color='green', alpha=0.2, label="Ideal Range (100-300 Hz)")
     ax.axvline(pitch_mean, color='red', linestyle='--', linewidth=2, label=f'Mean Pitch: {pitch_mean:.2f} Hz')
 
-    # Labels and title
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("Density")
     ax.set_title("Bell Curve of Pitch")
     ax.legend()
-
-    # Display the plot in Streamlit
     st.pyplot(fig)
 
-    ################################################################################################################
-    
-    # Pitch explanation
-    #st.markdown("### What is Pitch Distribution and Why is it Important?")
-    #st.write("Pitch distribution helps identify the general pitch range of the voice, which is crucial in customer service calls to analyze tone and engagement.")
-    
-    # Color coding for pitch evaluation
-    #pitch_quality = 'Good' if 100 < pitch_mean < 300 else 'Bad'
-    #pitch_color = 'green' if pitch_quality == 'Good' else 'red'
-    #st.markdown(f"**Pitch Quality:** <span style='color:{pitch_color}'>{pitch_mean:.2f} Hz ({pitch_quality})</span>", unsafe_allow_html=True)
-    
-    # Pitch Bell Curve Plot
-    #st.subheader("🎵 Pitch Distribution")
-    #fig, ax = plt.subplots()
-    #x_vals = np.linspace(pitch_mean - 3*pitch_std, pitch_mean + 3*pitch_std, 100)
-    #y_vals = norm.pdf(x_vals, pitch_mean, pitch_std) if pitch_std > 0 else np.zeros_like(x_vals)
-    
-    #sns.lineplot(x=x_vals, y=y_vals, ax=ax)
-    #ax.axvline(pitch_mean, color='blue', linestyle='--', label=f'Mean Pitch: {pitch_mean:.2f} Hz')
-    #ax.set_xlabel("Frequency (Hz)")
-    #ax.set_ylabel("Density")
-    #ax.set_title("Bell Curve of Pitch")
-    #ax.legend()
-    #st.pyplot(fig)
-    
-    # Clean up temporary files
+    # Clean up
     os.remove(file_path)
-    ######################################################################
-    st.markdown("""
-    <style>
-        .bottom-right {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            font-size: 12px;
-            color: #555;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 5px;
-            border-radius: 5px;
-        }
-    </style>
-    <div class="bottom-right">
-        Developed by Yash Sharma
-    </div>
-""", unsafe_allow_html=True)
