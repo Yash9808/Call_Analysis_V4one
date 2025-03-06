@@ -1,4 +1,5 @@
-streamlit
+
+streamlit>=1.29.0
 librosa
 transformers
 torch==2.2.0
