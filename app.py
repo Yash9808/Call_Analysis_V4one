@@ -88,8 +88,8 @@ if uploaded_file:
     st.write(f"**Confidence:** {sentiment['score']:.2f}")
 
     ### **🔹 MFCC Analysis**
-    st.subheader("🎵 MFCC Feature Extraction")
-    st.write("MFCC (Mel-Frequency Cepstral Coefficients) helps analyze the quality and tone of speech.")
+    st.markdown("### What is MFCC and Why is it Important?")
+    st.write("MFCC (Mel-Frequency Cepstral Coefficients) helps analyze the quality and tone of speech. It is widely used in speech recognition and emotion detection.")
 
     mfcc_quality = 'Good' if np.mean(mfccs) > -100 else 'Bad'
     mfcc_color = 'green' if mfcc_quality == 'Good' else 'red'
@@ -104,8 +104,8 @@ if uploaded_file:
     st.pyplot(fig)
 
     ### **🔹 FFT Analysis**
-    st.subheader("📈 FFT (Frequency Analysis)")
-    st.write("FFT (Fast Fourier Transform) helps analyze the frequency content of the voice.")
+    st.markdown("### What is FFT and Why is it Important?")
+    st.write("FFT (Fast Fourier Transform) helps analyze the frequency content of the voice, which can indicate pitch and clarity.")
 
     fft_quality = 'High' if peak_freq > 300 else 'Normal'
     fft_color = 'red' if fft_quality == 'High' else 'green'
@@ -122,8 +122,8 @@ if uploaded_file:
     st.pyplot(fig)
 
     ### **🔹 Pitch Analysis**
-    st.subheader("🎵 Pitch Distribution")
-    st.write("Pitch helps identify the general tone of the voice.")
+    st.markdown("### What is Pitch Distribution and Why is it Important?")
+    st.write("Pitch distribution helps identify the general pitch range of the voice, which is crucial in customer service calls to analyze tone and engagement")
 
     pitch_quality = 'Good' if 100 < pitch_mean < 300 else 'Bad'
     pitch_color = 'green' if pitch_quality == 'Good' else 'red'
