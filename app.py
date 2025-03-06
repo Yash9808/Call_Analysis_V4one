@@ -141,8 +141,8 @@ if uploaded_file:
     # Plot the pitch distribution curve
     sns.lineplot(x=x_vals, y=y_vals, ax=ax, color="blue", label="Pitch Distribution")
 
-    # Highlight the ideal pitch range (e.g., 100 Hz - 300 Hz)
-    ideal_low, ideal_high = 100, 300  # Adjust these values as needed
+    # Highlight the ideal pitch range (e.g., 100 Hz - 600 Hz)
+    ideal_low, ideal_high = 100, 600  # Adjust these values as needed
     ax.axvspan(ideal_low, ideal_high, color='green', alpha=0.2, label="Ideal Range (100-300 Hz)")
 
     # Mark the mean pitch
