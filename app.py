@@ -115,29 +115,63 @@ if uploaded_file:
     axes[1].legend()
     
     st.pyplot(fig)
-    
-    # Pitch explanation
-    st.markdown("### What is Pitch Distribution and Why is it Important?")
-    st.write("Pitch distribution helps identify the general pitch range of the voice, which is crucial in customer service calls to analyze tone and engagement.")
-    
-    # Color coding for pitch evaluation
-    pitch_quality = 'Good' if 100 < pitch_mean < 300 else 'Bad'
-    pitch_color = 'green' if pitch_quality == 'Good' else 'red'
-    st.markdown(f"**Pitch Quality:** <span style='color:{pitch_color}'>{pitch_mean:.2f} Hz ({pitch_quality})</span>", unsafe_allow_html=True)
-    
-    # Pitch Bell Curve Plot
+    ################################################################################################################
+    # Pitch Bell Curve Plot with Ideal Range Indicator
     st.subheader("🎵 Pitch Distribution")
+
     fig, ax = plt.subplots()
-    x_vals = np.linspace(pitch_mean - 3*pitch_std, pitch_mean + 3*pitch_std, 100)
-    y_vals = norm.pdf(x_vals, pitch_mean, pitch_std) if pitch_std > 0 else np.zeros_like(x_vals)
-    
-    sns.lineplot(x=x_vals, y=y_vals, ax=ax)
-    ax.axvline(pitch_mean, color='blue', linestyle='--', label=f'Mean Pitch: {pitch_mean:.2f} Hz')
+
+    # Ensure valid standard deviation to prevent errors
+    if pitch_std > 0:
+        x_vals = np.linspace(pitch_mean - 3*pitch_std, pitch_mean + 3*pitch_std, 100)
+        y_vals = norm.pdf(x_vals, pitch_mean, pitch_std)
+    else:
+        x_vals = np.array([pitch_mean])  # Avoid error if pitch_std = 0
+        y_vals = np.array([1.0])         # Set an arbitrary density value
+
+    # Plot the pitch distribution curve
+    sns.lineplot(x=x_vals, y=y_vals, ax=ax, color="blue", label="Pitch Distribution")
+
+    # Highlight the ideal pitch range (e.g., 100 Hz - 300 Hz)
+    ideal_low, ideal_high = 100, 300  # Adjust these values as needed
+    ax.axvspan(ideal_low, ideal_high, color='green', alpha=0.2, label="Ideal Range (100-300 Hz)")
+
+    # Mark the mean pitch
+    ax.axvline(pitch_mean, color='red', linestyle='--', linewidth=2, label=f'Mean Pitch: {pitch_mean:.2f} Hz')
+
+    # Labels and title
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("Density")
     ax.set_title("Bell Curve of Pitch")
     ax.legend()
+
+    # Display the plot in Streamlit
     st.pyplot(fig)
+
+    ################################################################################################################
+    
+    # Pitch explanation
+    #st.markdown("### What is Pitch Distribution and Why is it Important?")
+    #st.write("Pitch distribution helps identify the general pitch range of the voice, which is crucial in customer service calls to analyze tone and engagement.")
+    
+    # Color coding for pitch evaluation
+    #pitch_quality = 'Good' if 100 < pitch_mean < 300 else 'Bad'
+    #pitch_color = 'green' if pitch_quality == 'Good' else 'red'
+    #st.markdown(f"**Pitch Quality:** <span style='color:{pitch_color}'>{pitch_mean:.2f} Hz ({pitch_quality})</span>", unsafe_allow_html=True)
+    
+    # Pitch Bell Curve Plot
+    #st.subheader("🎵 Pitch Distribution")
+    #fig, ax = plt.subplots()
+    #x_vals = np.linspace(pitch_mean - 3*pitch_std, pitch_mean + 3*pitch_std, 100)
+    #y_vals = norm.pdf(x_vals, pitch_mean, pitch_std) if pitch_std > 0 else np.zeros_like(x_vals)
+    
+    #sns.lineplot(x=x_vals, y=y_vals, ax=ax)
+    #ax.axvline(pitch_mean, color='blue', linestyle='--', label=f'Mean Pitch: {pitch_mean:.2f} Hz')
+    #ax.set_xlabel("Frequency (Hz)")
+    #ax.set_ylabel("Density")
+    #ax.set_title("Bell Curve of Pitch")
+    #ax.legend()
+    #st.pyplot(fig)
     
     # Clean up temporary files
     os.remove(file_path)
