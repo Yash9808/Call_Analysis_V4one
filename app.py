@@ -19,7 +19,7 @@ import soundfile as sf  # To read audio files without audioread
 sentiment_analyzer = pipeline("sentiment-analysis")
 
 # Load and display Chartwell logo
-chartwell_logo_path = "https://raw.githubusercontent.com/Yash9808/Call_Analysis_V4one/main/image.jpeg"
+chartwell_logo_path = "https://raw.githubusercontent.com/Yash9808/Call_Analysis_V4one/main/The Chartwell Hospital (Logo).png"
 response = requests.get(chartwell_logo_path)
 img = Image.open(BytesIO(response.content))
 col1, col2, col3 = st.columns([5, 10, 1])  # Create three columns (the middle one is wider)
